@@ -122,6 +122,7 @@ public class ConfigManagementServiceImpl implements ConfigManagementService {
     public String putConnectorConfig(String connectorName, ConnectKeyValue configs) throws Exception {
 
         ConnectKeyValue exist = connectorKeyValueStore.get(connectorName);
+        configs.put(RuntimeConfigDefine.UPDATE_TIMESATMP, exist.getString(RuntimeConfigDefine.UPDATE_TIMESATMP));
         if(configs.equals(exist)){
             return "Connector with same config already exist.";
         }
