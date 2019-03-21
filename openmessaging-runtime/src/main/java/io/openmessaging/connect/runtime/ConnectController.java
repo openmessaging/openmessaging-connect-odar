@@ -122,7 +122,7 @@ public class ConnectController {
             } catch (Exception e) {
                 log.error("schedule persist config error.", e);
             }
-        }, 1000, 20 * 1000, TimeUnit.MILLISECONDS);
+        }, 1000, this.connectConfig.getConfigPersistInterval(), TimeUnit.MILLISECONDS);
 
         // Persist position information of source tasks.
         this.scheduledExecutorService.scheduleAtFixedRate(() -> {
@@ -132,7 +132,7 @@ public class ConnectController {
             } catch (Exception e) {
                 log.error("schedule persist position error.", e);
             }
-        }, 1000, 20 * 1000, TimeUnit.MILLISECONDS);
+        }, 1000, this.connectConfig.getPositionPersistInterval(), TimeUnit.MILLISECONDS);
     }
 
     public void shutdown() {

@@ -76,8 +76,8 @@ public class RebalanceImpl {
         Map<String, List<ConnectKeyValue>> curTaskConfigs = configManagementService.getTaskConfigs();
 
         ConnAndTaskConfigs allocateResult = allocateConnAndTaskStrategy.allocate(curAliveWorkers.keySet(), worker.getWorkerId(), curConnectorConfigs, curTaskConfigs);
-        log.info("allocated connector:" + allocateResult.getConnectorConfigs());
-        log.info("allocated task:" + allocateResult.getTaskConfigs());
+        log.info("Allocated connector:{}", allocateResult.getConnectorConfigs());
+        log.info("Allocated task:{}", allocateResult.getTaskConfigs());
         updateProcessConfigsInRebalance(allocateResult);
     }
 

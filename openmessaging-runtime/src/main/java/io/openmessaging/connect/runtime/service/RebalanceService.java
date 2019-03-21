@@ -26,6 +26,8 @@ public class RebalanceService extends ServiceThread {
 
     private static final Logger log = LoggerFactory.getLogger(LoggerName.OMS_RUNTIME);
 
+    private static long waitInterval = Long.parseLong(System.getProperty("odar.cluster.rebalance.waitInterval", "20000"));
+
     /**
      * Assign all connectors and tasks to all alive process in the cluster.
      */
@@ -54,7 +56,7 @@ public class RebalanceService extends ServiceThread {
         log.info(this.getServiceName() + " service started");
 
         while (!this.isStopped()) {
-            this.waitForRunning(20000);
+            this.waitForRunning(waitInterval);
             this.rebalanceImpl.doRebalance();
         }
 
