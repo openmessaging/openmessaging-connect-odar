@@ -44,6 +44,11 @@ public class BrokerBasedLog<K, V> implements DataSynchronizer<K, V>{
     private static final Logger log = LoggerFactory.getLogger(LoggerName.OMS_RUNTIME);
 
     /**
+     * Maximum allowed message size in bytes, the default vaule is 4M.
+     */
+    private static int maxMessageSize = Integer.parseInt(System.getProperty("odar.max.message.size", "4194304"));
+
+    /**
      * A callback to receive data from other workers.
      */
     private DataSynchronizerCallback<K, V> dataSynchronizerCallback;
@@ -103,7 +108,7 @@ public class BrokerBasedLog<K, V> implements DataSynchronizer<K, V>{
                     context.ack();
                     return;
                 }
-                log.info("Received one message: " + message.sysHeaders().getString(Message.BuiltinKeys.MESSAGE_ID) + "\n");
+                log.info("Received one message: {}", message.sysHeaders().getString(Message.BuiltinKeys.MESSAGE_ID) + "\n");
                 byte[] bytes = message.getBody(byte[].class);
                 Map<K, V> map = decodeKeyValue(bytes);
                 for (K key : map.keySet()) {
@@ -128,13 +133,18 @@ public class BrokerBasedLog<K, V> implements DataSynchronizer<K, V>{
     public void send(K key, V value){
 
         try {
-            Future<SendResult> result = producer.sendAsync(producer.createBytesMessage(queueName, encodeKeyValue(key, value)));
+            byte[] body = encodeKeyValue(key, value);
+            if (body.length > maxMessageSize) {
+                log.error("Message size is greater than {} bytes, key: {}, value {}", maxMessageSize, key, value);
+                return;
+            }
+            Future<SendResult> result = producer.sendAsync(producer.createBytesMessage(queueName, body));
             result.addListener((future) -> {
 
                 if (future.getThrowable() != null) {
-                    log.error("Send async message Failed, error: " + future.getThrowable());
+                    log.error("Send async message Failed, error: {}", future.getThrowable());
                 } else {
-                    log.info("Send async message OK, msgId: " + future.get().messageId() + "\n");
+                    log.info("Send async message OK, msgId: {}", future.get().messageId() + "\n");
                 }
             });
         } catch (Exception e) {

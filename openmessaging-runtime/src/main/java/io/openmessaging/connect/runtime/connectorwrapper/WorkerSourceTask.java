@@ -119,14 +119,14 @@ public class WorkerSourceTask implements Runnable {
                 }
             });
             sourceTask.start(taskConfig);
-            log.info("task start, config:"+ JSON.toJSONString(taskConfig));
+            log.info("task start, config:{}", JSON.toJSONString(taskConfig));
             while (!isStopping.get()) {
                 Collection<SourceDataEntry> toSendEntries = sourceTask.poll();
                 if (null != toSendEntries && toSendEntries.size() > 0) {
                     sendRecord(toSendEntries);
                 }
             }
-            log.info("task stop, config:"+ JSON.toJSONString(taskConfig));
+            log.info("task stop, config:{}", JSON.toJSONString(taskConfig));
         }catch(Exception e){
             log.error("Run task failed.", e);
         }
