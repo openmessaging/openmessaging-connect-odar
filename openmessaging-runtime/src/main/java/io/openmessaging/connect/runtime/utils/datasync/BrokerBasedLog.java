@@ -24,6 +24,7 @@ import io.openmessaging.MessagingAccessPoint;
 import io.openmessaging.OMS;
 import io.openmessaging.OMSBuiltinKeys;
 import io.openmessaging.connect.runtime.common.LoggerName;
+import io.openmessaging.connect.runtime.config.RuntimeConfigDefine;
 import io.openmessaging.connector.api.data.Converter;
 import io.openmessaging.consumer.PushConsumer;
 import io.openmessaging.producer.Producer;
@@ -103,7 +104,7 @@ public class BrokerBasedLog<K, V> implements DataSynchronizer<K, V>{
                     context.ack();
                     return;
                 }
-                log.info("Received one message: " + message.sysHeaders().getString(Message.BuiltinKeys.MESSAGE_ID) + "\n");
+                log.info("Received one message: {}", message.sysHeaders().getString(Message.BuiltinKeys.MESSAGE_ID) + "\n");
                 byte[] bytes = message.getBody(byte[].class);
                 Map<K, V> map = decodeKeyValue(bytes);
                 for (K key : map.keySet()) {
@@ -128,13 +129,18 @@ public class BrokerBasedLog<K, V> implements DataSynchronizer<K, V>{
     public void send(K key, V value){
 
         try {
-            Future<SendResult> result = producer.sendAsync(producer.createBytesMessage(queueName, encodeKeyValue(key, value)));
+            byte[] messageBody = encodeKeyValue(key, value);
+            if (messageBody.length > RuntimeConfigDefine.MAX_MESSAGE_SIZE) {
+                log.error("Message size is greater than {} bytes, key: {}, value {}", RuntimeConfigDefine.MAX_MESSAGE_SIZE, key, value);
+                return;
+            }
+            Future<SendResult> result = producer.sendAsync(producer.createBytesMessage(queueName, messageBody));
             result.addListener((future) -> {
 
                 if (future.getThrowable() != null) {
-                    log.error("Send async message Failed, error: " + future.getThrowable());
+                    log.error("Send async message Failed, error: {}", future.getThrowable());
                 } else {
-                    log.info("Send async message OK, msgId: " + future.get().messageId() + "\n");
+                    log.info("Send async message OK, msgId: {}", future.get().messageId() + "\n");
                 }
             });
         } catch (Exception e) {

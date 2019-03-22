@@ -23,6 +23,7 @@ import io.openmessaging.KeyValue;
 import io.openmessaging.Message;
 import io.openmessaging.connect.runtime.common.ConnectKeyValue;
 import io.openmessaging.connect.runtime.common.LoggerName;
+import io.openmessaging.connect.runtime.config.RuntimeConfigDefine;
 import io.openmessaging.connector.api.PositionStorageReader;
 import io.openmessaging.connector.api.data.Converter;
 import io.openmessaging.connector.api.data.DataEntry;
@@ -119,14 +120,14 @@ public class WorkerSourceTask implements Runnable {
                 }
             });
             sourceTask.start(taskConfig);
-            log.info("task start, config:"+ JSON.toJSONString(taskConfig));
+            log.info("task start, config:{}", JSON.toJSONString(taskConfig));
             while (!isStopping.get()) {
                 Collection<SourceDataEntry> toSendEntries = sourceTask.poll();
                 if (null != toSendEntries && toSendEntries.size() > 0) {
                     sendRecord(toSendEntries);
                 }
             }
-            log.info("task stop, config:"+ JSON.toJSONString(taskConfig));
+            log.info("task stop, config:{}", JSON.toJSONString(taskConfig));
         }catch(Exception e){
             log.error("Run task failed.", e);
         }
@@ -157,7 +158,12 @@ public class WorkerSourceTask implements Runnable {
             Object[] newPayload = new Object[1];
             newPayload[0] = Base64.getEncoder().encodeToString(payload);
             sourceDataEntry.setPayload(newPayload);
-            Message sourceMessage = producer.createBytesMessage(sourceDataEntry.getQueueName(), JSON.toJSONString(sourceDataEntry).getBytes());
+            final byte[] messageBody = JSON.toJSONString(sourceDataEntry).getBytes();
+            if (messageBody.length > RuntimeConfigDefine.MAX_MESSAGE_SIZE) {
+                log.error("Send record, message size is greater than {} bytes, payload: {}", RuntimeConfigDefine.MAX_MESSAGE_SIZE, sourceDataEntry.getPayload());
+                return;
+            }
+            Message sourceMessage = producer.createBytesMessage(sourceDataEntry.getQueueName(), messageBody);
             Future<SendResult> sendResult = producer.sendAsync(sourceMessage);
             sendResult.addListener((future) -> {
 

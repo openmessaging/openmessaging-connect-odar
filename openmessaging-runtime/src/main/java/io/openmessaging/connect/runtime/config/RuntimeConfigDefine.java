@@ -63,4 +63,10 @@ public class RuntimeConfigDefine {
             add(SOURCE_RECORD_CONVERTER);
         }
     };
+
+    /**
+     * Maximum allowed message size in bytes, the default vaule is 4M.
+     */
+    public static int MAX_MESSAGE_SIZE = Integer.parseInt(System.getProperty("odar.max.message.size", "4194304"));
+
 }

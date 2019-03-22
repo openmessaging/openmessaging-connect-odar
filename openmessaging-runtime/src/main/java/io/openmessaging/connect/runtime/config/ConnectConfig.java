@@ -45,6 +45,16 @@ public class ConnectConfig {
      */
     private int httpPort = 8081;
 
+    /**
+     * Source task position persistence interval.
+     */
+    private int positionPersistInterval = 20 * 1000;
+
+    /**
+     * Connector configuration persistence interval.
+     */
+    private int configPersistInterval = 20 * 1000;
+
     public String getOmsDriverUrl() {
         return omsDriverUrl;
     }
@@ -75,5 +85,21 @@ public class ConnectConfig {
 
     public void setHttpPort(int httpPort) {
         this.httpPort = httpPort;
+    }
+
+    public int getPositionPersistInterval() {
+        return positionPersistInterval;
+    }
+
+    public void setPositionPersistInterval(int positionPersistInterval) {
+        this.positionPersistInterval = positionPersistInterval;
+    }
+
+    public int getConfigPersistInterval() {
+        return configPersistInterval;
+    }
+
+    public void setConfigPersistInterval(int configPersistInterval) {
+        this.configPersistInterval = configPersistInterval;
     }
 }

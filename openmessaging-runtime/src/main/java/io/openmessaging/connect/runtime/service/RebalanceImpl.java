@@ -23,8 +23,10 @@ import io.openmessaging.connect.runtime.common.LoggerName;
 import io.openmessaging.connect.runtime.connectorwrapper.Worker;
 import io.openmessaging.connect.runtime.service.strategy.AllocateConnAndTaskStrategy;
 import io.openmessaging.connect.runtime.service.strategy.DefaultAllocateConnAndTaskStrategy;
+
 import java.util.List;
 import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,13 +58,11 @@ public class RebalanceImpl {
     private AllocateConnAndTaskStrategy allocateConnAndTaskStrategy;
 
     public RebalanceImpl(Worker worker, ConfigManagementService configManagementService,
-        ClusterManagementService clusterManagementService) {
+                         ClusterManagementService clusterManagementService) {
 
         this.worker = worker;
         this.configManagementService = configManagementService;
         this.clusterManagementService = clusterManagementService;
-        this.configManagementService.registerListener(new ConnectorConnectorConfigChangeListenerImpl());
-        this.clusterManagementService.registerListener(new WorkerStatusListenerImpl());
         this.allocateConnAndTaskStrategy = new DefaultAllocateConnAndTaskStrategy();
     }
 
@@ -76,44 +76,24 @@ public class RebalanceImpl {
         Map<String, List<ConnectKeyValue>> curTaskConfigs = configManagementService.getTaskConfigs();
 
         ConnAndTaskConfigs allocateResult = allocateConnAndTaskStrategy.allocate(curAliveWorkers.keySet(), worker.getWorkerId(), curConnectorConfigs, curTaskConfigs);
-        log.info("allocated connector:"+ allocateResult.getConnectorConfigs());
-        log.info("allocated task:"+ allocateResult.getTaskConfigs());
+        log.info("Allocated connector:{}", allocateResult.getConnectorConfigs());
+        log.info("Allocated task:{}", allocateResult.getTaskConfigs());
         updateProcessConfigsInRebalance(allocateResult);
     }
 
     /**
      * Start all the connectors and tasks allocated to current process.
+     *
      * @param allocateResult
      */
     private void updateProcessConfigsInRebalance(ConnAndTaskConfigs allocateResult) {
 
-        try{
+        try {
             worker.startConnectors(allocateResult.getConnectorConfigs());
             worker.startTasks(allocateResult.getTaskConfigs());
-        }catch(Exception e){
+        } catch (Exception e) {
             log.error("RebalanceImpl#updateProcessConfigsInRebalance start connector or task failed", e);
         }
     }
 
-    class WorkerStatusListenerImpl implements ClusterManagementService.WorkerStatusListener{
-
-        /**
-         * When alive workers change.
-         */
-        @Override
-        public void onWorkerChange() {
-            RebalanceImpl.this.doRebalance();
-        }
-    }
-
-    class ConnectorConnectorConfigChangeListenerImpl implements ConfigManagementService.ConnectorConfigUpdateListener {
-
-        /**
-         * When config change.
-         */
-        @Override
-        public void onConfigUpdate() {
-            RebalanceImpl.this.doRebalance();
-        }
-    }
 }

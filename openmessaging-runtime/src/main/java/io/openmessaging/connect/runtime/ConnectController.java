@@ -18,24 +18,17 @@
 package io.openmessaging.connect.runtime;
 
 import io.openmessaging.MessagingAccessPoint;
-import io.openmessaging.OMS;
 import io.openmessaging.connect.runtime.common.LoggerName;
 import io.openmessaging.connect.runtime.config.ConnectConfig;
 import io.openmessaging.connect.runtime.connectorwrapper.Worker;
 import io.openmessaging.connect.runtime.rest.RestHandler;
-import io.openmessaging.connect.runtime.service.ClusterManagementService;
-import io.openmessaging.connect.runtime.service.ClusterManagementServiceImpl;
-import io.openmessaging.connect.runtime.service.ConfigManagementService;
-import io.openmessaging.connect.runtime.service.ConfigManagementServiceImpl;
-import io.openmessaging.connect.runtime.service.MessagingAccessWrapper;
-import io.openmessaging.connect.runtime.service.PositionManagementService;
-import io.openmessaging.connect.runtime.service.PositionManagementServiceImpl;
-import io.openmessaging.connect.runtime.service.RebalanceImpl;
+import io.openmessaging.connect.runtime.service.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Connect controller to access and control all resource in runtime.
@@ -85,6 +78,11 @@ public class ConnectController {
     private final RebalanceImpl rebalanceImpl;
 
     /**
+     * A scheduled task to rebalance all connectors and tasks in the cluster.
+     */
+    private final RebalanceService rebalanceService;
+
+    /**
      * Thread pool to run schedule task.
      */
     private ScheduledExecutorService scheduledExecutorService;
@@ -100,19 +98,21 @@ public class ConnectController {
         this.worker = new Worker(connectConfig, positionManagementService, messagingAccessWrapper);
         this.rebalanceImpl = new RebalanceImpl(worker, configManagementService, clusterManagementService);
         this.restHandler = new RestHandler(this);
+        this.rebalanceService = new RebalanceService(rebalanceImpl, configManagementService, clusterManagementService);
     }
 
-    public void initialize(){
+    public void initialize() {
 
         this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor((r) -> new Thread(r, "ConnectScheduledThread"));
     }
 
-    public void start(){
+    public void start() {
 
         clusterManagementService.start();
         configManagementService.start();
         positionManagementService.start();
         worker.start();
+        rebalanceService.start();
 
         // Persist configurations of current connectors and tasks.
         this.scheduledExecutorService.scheduleAtFixedRate(() -> {
@@ -122,7 +122,7 @@ public class ConnectController {
             } catch (Exception e) {
                 log.error("schedule persist config error.", e);
             }
-        }, 1000, 20*1000, TimeUnit.MILLISECONDS);
+        }, 1000, this.connectConfig.getConfigPersistInterval(), TimeUnit.MILLISECONDS);
 
         // Persist position information of source tasks.
         this.scheduledExecutorService.scheduleAtFixedRate(() -> {
@@ -132,32 +132,32 @@ public class ConnectController {
             } catch (Exception e) {
                 log.error("schedule persist position error.", e);
             }
-        }, 1000, 20*1000, TimeUnit.MILLISECONDS);
+        }, 1000, this.connectConfig.getPositionPersistInterval(), TimeUnit.MILLISECONDS);
     }
 
-    public void shutdown(){
+    public void shutdown() {
 
-        if(clusterManagementService != null){
+        if (clusterManagementService != null) {
             clusterManagementService.stop();
         }
 
-        if(configManagementService != null){
+        if (configManagementService != null) {
             configManagementService.stop();
         }
 
-        if(positionManagementService != null){
+        if (positionManagementService != null) {
             positionManagementService.stop();
         }
 
-        if(worker != null){
+        if (worker != null) {
             worker.stop();
         }
 
-        if(configManagementService != null){
+        if (configManagementService != null) {
             configManagementService.persist();
         }
 
-        if(positionManagementService != null){
+        if (positionManagementService != null) {
             positionManagementService.persist();
         }
 
@@ -169,6 +169,10 @@ public class ConnectController {
         }
 
         messagingAccessWrapper.removeAllMessageAccessPoint();
+
+        if (rebalanceService != null) {
+            rebalanceService.stop();
+        }
     }
 
     public ConnectConfig getConnectConfig() {
