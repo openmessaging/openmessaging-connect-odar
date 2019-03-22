@@ -24,6 +24,7 @@ import io.openmessaging.MessagingAccessPoint;
 import io.openmessaging.OMS;
 import io.openmessaging.OMSBuiltinKeys;
 import io.openmessaging.connect.runtime.common.LoggerName;
+import io.openmessaging.connect.runtime.config.RuntimeConfigDefine;
 import io.openmessaging.connector.api.data.Converter;
 import io.openmessaging.consumer.PushConsumer;
 import io.openmessaging.producer.Producer;
@@ -42,11 +43,6 @@ import org.slf4j.LoggerFactory;
 public class BrokerBasedLog<K, V> implements DataSynchronizer<K, V>{
 
     private static final Logger log = LoggerFactory.getLogger(LoggerName.OMS_RUNTIME);
-
-    /**
-     * Maximum allowed message size in bytes, the default vaule is 4M.
-     */
-    private static int maxMessageSize = Integer.parseInt(System.getProperty("odar.max.message.size", "4194304"));
 
     /**
      * A callback to receive data from other workers.
@@ -133,9 +129,9 @@ public class BrokerBasedLog<K, V> implements DataSynchronizer<K, V>{
     public void send(K key, V value){
 
         try {
-            byte[] body = encodeKeyValue(key, value);
-            if (body.length > maxMessageSize) {
-                log.error("Message size is greater than {} bytes, key: {}, value {}", maxMessageSize, key, value);
+            byte[] messageBody = encodeKeyValue(key, value);
+            if (messageBody.length > RuntimeConfigDefine.MAX_MESSAGE_SIZE) {
+                log.error("Message size is greater than {} bytes, key: {}, value {}", RuntimeConfigDefine.MAX_MESSAGE_SIZE, key, value);
                 return;
             }
             Future<SendResult> result = producer.sendAsync(producer.createBytesMessage(queueName, body));
