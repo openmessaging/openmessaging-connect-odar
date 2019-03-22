@@ -134,7 +134,7 @@ public class BrokerBasedLog<K, V> implements DataSynchronizer<K, V>{
                 log.error("Message size is greater than {} bytes, key: {}, value {}", RuntimeConfigDefine.MAX_MESSAGE_SIZE, key, value);
                 return;
             }
-            Future<SendResult> result = producer.sendAsync(producer.createBytesMessage(queueName, body));
+            Future<SendResult> result = producer.sendAsync(producer.createBytesMessage(queueName, messageBody));
             result.addListener((future) -> {
 
                 if (future.getThrowable() != null) {
