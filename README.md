@@ -92,7 +92,7 @@ Make a mysql row update, your will found the MQ you config receive a message, an
 
 ## Note
 
-Module example-mysql-connector is just a simple example of source connector. 
+Module odar-mysql-connector is just a simple example of source connector. 
 This module is base on [RocketMQ Mysql](https://github.com/apache/rocketmq-externals/tree/master/rocketmq-mysql) with a little code modified in order to implement connector interface.
 User can reference this module to implement other source or sink connector.
 

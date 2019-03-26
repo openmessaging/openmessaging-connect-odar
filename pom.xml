@@ -31,8 +31,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>openmessaging-runtime</module>
-        <module>example-mysql-connector</module>
+        <module>odar-mysql-connector</module>
     </modules>
 
     <organization>
@@ -196,7 +195,7 @@
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
-                <artifactId>example-mysql-connector</artifactId>
+                <artifactId>odar-mysql-connector</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

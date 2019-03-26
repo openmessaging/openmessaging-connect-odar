@@ -24,7 +24,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>example-mysql-connector</artifactId>
+    <artifactId>odar-mysql-connector</artifactId>
     <dependencies>
         <dependency>
             <groupId>io.openmessaging</groupId>
