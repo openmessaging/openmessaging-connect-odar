@@ -27,7 +27,7 @@
     <groupId>io.openmessaging</groupId>
     <artifactId>openmessaging-odar</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Messaging Connect Runtime</name>
+    <name>Messaging Connect Orda</name>
     <packaging>pom</packaging>
 
     <modules>
@@ -190,7 +190,7 @@
         <dependencies>
             <dependency>
                 <groupId>${project.groupId}</groupId>
-                <artifactId>runtime</artifactId>
+                <artifactId>openmessaging-connect-runtime</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -200,7 +200,7 @@
             </dependency>
             <dependency>
                 <groupId>io.openmessaging</groupId>
-                <artifactId>openmessaging-connector</artifactId>
+                <artifactId>openmessaging-connect</artifactId>
                 <version>0.1.0-beta</version>
             </dependency>
             <dependency>
