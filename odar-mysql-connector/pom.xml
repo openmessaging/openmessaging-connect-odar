@@ -73,7 +73,7 @@
         </dependency>
         <dependency>
             <groupId>io.openmessaging</groupId>
-            <artifactId>openmessaging-connector</artifactId>
+            <artifactId>openmessaging-connect</artifactId>
         </dependency>
     </dependencies>
 
