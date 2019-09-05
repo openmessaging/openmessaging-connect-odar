@@ -31,6 +31,8 @@ public class Config {
     public Integer mysqlPort;
     public String mysqlUsername;
     public String mysqlPassword;
+    public String whiteDataBase;
+    public String whiteTable;
 
     public String queueName;
 
@@ -45,6 +47,7 @@ public class Config {
             add("mysqlPort");
             add("mysqlUsername");
             add("mysqlPassword");
+            add("whiteDataBase");
         }
     };
 
@@ -144,6 +147,22 @@ public class Config {
 
     public String getMysqlPassword() {
         return mysqlPassword;
+    }
+
+    public String getWhiteDataBase() {
+        return whiteDataBase;
+    }
+
+    public void setWhiteDataBase(String whiteDataBase) {
+        this.whiteDataBase = whiteDataBase;
+    }
+
+    public String getWhiteTable() {
+        return whiteTable;
+    }
+
+    public void setWhiteTable(String whiteTable) {
+        this.whiteTable = whiteTable;
     }
 
     public String getQueueName() {
