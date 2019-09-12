@@ -84,7 +84,8 @@ Note to replace the arguments in "()" with your own mysql setting.
 |mysqlUsername         |false   |           |Username of MySQL account|
 |mysqlPassword         |false   |           |Password of MySQL account|
 |source-record-converter         |false   |           |Full class name of the impl of the converter used to convert SourceDataEntry to byte[]|
-
+|whiteDataBase      |false  |           |DataBase Name which you want to source data
+|whiteTable         |true   |           |Table Name which you want to source data (choosable)
 
 ### Verify Mysql Source Connector Started Successfully
 

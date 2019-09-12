@@ -18,6 +18,7 @@
 package io.openmessaging.mysql.binlog;
 
 import com.alibaba.druid.pool.DruidDataSourceFactory;
+import com.alibaba.druid.util.StringUtils;
 import com.github.shyiko.mysql.binlog.BinaryLogClient;
 import com.github.shyiko.mysql.binlog.event.DeleteRowsEventData;
 import com.github.shyiko.mysql.binlog.event.Event;
@@ -36,9 +37,7 @@ import io.openmessaging.mysql.position.BinlogPositionManager;
 import io.openmessaging.mysql.schema.Schema;
 import io.openmessaging.mysql.schema.Table;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -85,6 +84,20 @@ public class EventProcessor {
         binlogPositionManager.initBeginPosition();
 
         schema = new Schema(dataSource);
+        String whiteDataBases = config.getWhiteDataBase();
+        String whiteTables = config.getWhiteTable();
+
+        if (!StringUtils.isEmpty(whiteDataBases)){
+            Arrays.asList(whiteDataBases.trim().split(",")).forEach(whiteDataBase ->{
+                Collections.addAll(schema.dataBaseWhiteList, whiteDataBase);
+            });
+        }
+
+        if (!StringUtils.isEmpty(whiteTables)){
+            Arrays.asList(whiteTables.trim().split(",")).forEach(whiteTable ->{
+                Collections.addAll(schema.tableWhiteList, whiteTable);
+            });
+        }
         schema.load();
 
         eventListener = new EventListener(queue);
@@ -190,8 +203,9 @@ public class EventProcessor {
         Long tableId = data.getTableId();
 
         Table table = schema.getTable(dbName, tableName);
-
-        tableMap.put(tableId, table);
+        if (table != null){
+            tableMap.put(tableId, table);
+        }
     }
 
     private void processWriteEvent(Event event) {

@@ -21,11 +21,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import javax.sql.DataSource;
 import io.openmessaging.mysql.binlog.EventProcessor;
 import org.slf4j.Logger;
@@ -40,12 +36,18 @@ public class Schema {
         Arrays.asList(new String[] {"information_schema", "mysql", "performance_schema", "sys"})
     );
 
+    public Set<String> dataBaseWhiteList;
+
+    public Set<String> tableWhiteList;
+
     private DataSource dataSource;
 
     private Map<String, Database> dbMap;
 
     public Schema(DataSource dataSource) {
         this.dataSource = dataSource;
+        this.dataBaseWhiteList = new HashSet<>();
+        this.tableWhiteList = new HashSet<>();
     }
 
     public void load() throws SQLException {
@@ -64,8 +66,8 @@ public class Schema {
 
             while (rs.next()) {
                 String dbName = rs.getString(1);
-                if (!IGNORED_DATABASES.contains(dbName)) {
-                    Database database = new Database(dbName, dataSource);
+                if (!IGNORED_DATABASES.contains(dbName) && dataBaseWhiteList.contains(dbName)) {
+                    Database database = new Database(dbName, dataSource, tableWhiteList);
                     dbMap.put(dbName, database);
                 }
             }

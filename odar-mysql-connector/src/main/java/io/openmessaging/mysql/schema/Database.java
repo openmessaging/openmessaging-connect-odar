@@ -25,6 +25,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,9 +42,17 @@ public class Database {
 
     private Map<String, Table> tableMap = new HashMap<String, Table>();
 
+    public Set<String> tableWhiteList;
+
     public Database(String name, DataSource dataSource) {
         this.name = name;
         this.dataSource = dataSource;
+    }
+
+    public Database(String name, DataSource dataSource, Set<String> tableWhiteList){
+        this.name = name;
+        this.dataSource = dataSource;
+        this.tableWhiteList = tableWhiteList;
     }
 
     public void init() throws SQLException {
@@ -66,7 +75,9 @@ public class Database {
                 String charset = rs.getString(5);
 
                 ColumnParser columnParser = ColumnParser.getColumnParser(dataType, colType, charset);
-
+                if (tableWhiteList.size() != 0 && !tableWhiteList.contains(tableName)){
+                    continue;
+                }
                 if (!tableMap.containsKey(tableName)) {
                     addTable(tableName);
                 }
